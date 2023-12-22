@@ -100,17 +100,16 @@ function main() {
     let currentDay = base.getDate();
     let month = base.getMonth() + 1;
     let year = base.getFullYear();
-    const days = new Date(year, month, 0).getDate() - currentDay;
+    const days = new Date(year, month, 0).getDate() - currentDay + 1;
     return days
   }
   
-  function decimalBudget(amount){
-    let number = amount;
-    
-    // Validate minimum amount is set to 1 if amount = 0
-    if (number == 0) {
-      number = 1;
+  function decimalBudget(amount){    
+    // Sets amount to 1 if amount = 0
+    if (amount == 0) {
+      amount = 1;
     }
-    let numToString = number.toFixed(2);
+
+    let numToString = amount.toFixed(2);
     return numToString * 1;
   }
