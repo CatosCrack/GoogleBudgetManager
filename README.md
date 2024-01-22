@@ -41,7 +41,7 @@ The function that handles the mailing system uses an error code system. Here's t
         var body = "The budget management script couldn't update the campaign '" + campaignName + "' in your account '" + accountName + "'. Please update the budget manually.";
         MailApp.sendEmail(email, subject, body);
         console.log(">> Email sent. Code 1");
-        }
+      }
   
 - Code 2: This code indicates that the new required daily amount is over 3x the average daily amount. This average daily amount is calculated as Total Budget / 30.4 days.
 
@@ -50,7 +50,7 @@ The function that handles the mailing system uses an error code system. Here's t
         var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", more than 3x your average of $" + benchmark + "/day. Please update manually if you want to proceed with this change.";
         MailApp.sendEmail(email, subject, body);
         console.log(">> Email sent. Code 2");
-        }
+      }
 
 - Code 3: This error means that the new required daily budget is 3x less than than the average amount. This average daily amount is calculated as Total Budget / 30.4 days. 
 
@@ -59,7 +59,7 @@ The function that handles the mailing system uses an error code system. Here's t
         var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", 3x lower than your average of $" + benchmark + "/day. Please update manually if you want to proceed with this change.";
         MailApp.sendEmail(email, subject, body);
         console.log(">> Email sent. Code 3");
-        }
+      }
 
 ## Formatting the spreadsheet
 You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget, do not use any formating or periods or commas.
