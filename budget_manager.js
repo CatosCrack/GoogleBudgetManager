@@ -102,6 +102,9 @@ function update_budgets() {
       let campaignName = campaign.getName();
       console.log(">> Campaign Name: " + campaignName);
 
+      // Checks if the program needs to update the branding budget or not.
+      // First checks if the current campaign is a branding campaign. Then checks if there is budget information in the spreadsheet
+      // If no branding information was specified, the program skips the campaign and lets the budget unchanged. Otherwise, the normal process applies.
       if (campaignName.includes("Branding") || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
         console.log("Branding campaign no included in spreadsheet. Budget unchanged.")
       } else {
