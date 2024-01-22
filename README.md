@@ -15,7 +15,7 @@ Before using the program, the user needs to update the following variables:
         var emails = {
               managerNameTag:"[MANAGER EMAIL]"
         }
-# Day Accuracy
+## Day Accuracy
 
 The script is intended to run at the start of the day. This is the reason why the constant *days*, within the function *daysInMonth()*, adds one day to the difference between the current date and the total days in the month.
   
@@ -32,7 +32,7 @@ If the script needs to be run at the end of the day, the *+ 1* needs to be remov
 
 For debugging purposes, you can remove the *'//'* before any *console.log()* calls to get more detailed information about script execution.
 
-# Email Error System
+## Email Error System
 The function that handles the mailing system uses an error code system. Here's the explanation:
 - Code 1: This means there was a fatal error in the code. The PPC manager of the account that caused the error will be notified.
 
@@ -61,7 +61,7 @@ The function that handles the mailing system uses an error code system. Here's t
         console.log(">> Email sent. Code 3");
         }
 
-# Formatting the spreadsheet
+## Formatting the spreadsheet
 You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget, do not use any formating or periods or commas.
 
 ![Screenshot of Google Sheet](https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
