@@ -65,3 +65,10 @@ The function that handles the mailing system uses an error code system. Here's t
 You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget, do not use any formating or periods or commas.
 
 ![Screenshot of Google Sheet](https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
+
+**IMPORTANT:** If your budget for the branding campaign is a fixed amount every month, don't add it in the spreadsheet. Simply set the correct amount in Google Ads.
+
+If you pause a campaign, you don't need to take it out of the spreadsheet. However, if you have an active campaign in your Google account and you don't add it, you will cause and error and receive an email detailing what account is missing the campaign.
+
+## Excluding accounts from the script
+If you don't want the script to make changes to an account, add a label named "Exclude - Budget Script" at the MCC level.
