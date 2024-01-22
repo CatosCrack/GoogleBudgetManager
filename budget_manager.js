@@ -102,51 +102,55 @@ function update_budgets() {
       let campaignName = campaign.getName();
       console.log(">> Campaign Name: " + campaignName);
 
-      try {
-        // Get the budget spent in the current month
-        let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
-        console.log(">> Current Spend: $" + monthSpend);
-        
-        // Get the current average daily budget
-        let budgetObject = campaign.getBudget();
-        let currentBudget = budgetObject.getAmount();
-        console.log(">> Budget: $" + currentBudget + "/day");
-        
-        // Calculate leftover budget and calculate the daily spending benchmark
-        var totalBudget = accountObject[accountName][campaignName];
-        var leftover = totalBudget - monthSpend;
-        var newDailyBudget = decimalBudget(leftover/daysLeft);
-        var budgetBenchmark = decimalBudget(totalBudget/30.4);
-        // console.log("Total Budget: $" + totalBudget);
-        // console.log("Leftover: $" + leftover);
-
-        // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
-        // Sends an email to the manager in new daily budget is 3x or more less than the benchmark
-        // Updates the budget if no errors are found
-        if (newDailyBudget > 3*budgetBenchmark) {
-          console.log(">> Error Code: 2. New required budget is too high!");
-          console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
-          sendErrorEmail(accountName, campaignName, currentManagerEmail, 2, newDailyBudget, budgetBenchmark);
-        } else if (newDailyBudget < 0.4*budgetBenchmark) {
-          console.log(">> Error Code: 3. New required budget is too low!");
-          console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
-          sendErrorEmail(accountName, campaignName, currentManagerEmail, 3, newDailyBudget, budgetBenchmark);
-        } else {
-          console.log(">> Required Daily Budget: " + newDailyBudget);
-          budgetObject.setAmount(newDailyBudget);
+      if (campaignName.includes("Branding") || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
+        // pass
+      } else {
+        try {
+          // Get the budget spent in the current month
+          let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
+          console.log(">> Current Spend: $" + monthSpend);
           
-          if (budgetObject.getAmount() == newDailyBudget){
-            console.log(">> Budget successfully updated.");
-            console.log(">> New Daily Budget: $" + budgetObject.getAmount());
-          } 
+          // Get the current average daily budget
+          let budgetObject = campaign.getBudget();
+          let currentBudget = budgetObject.getAmount();
+          console.log(">> Current Daily Budget: $" + currentBudget + "/day");
+          
+          // Calculate leftover budget and calculate the daily spending benchmark
+          var totalBudget = accountObject[accountName][campaignName];
+          var leftover = totalBudget - monthSpend;
+          var newDailyBudget = decimalBudget(leftover/daysLeft);
+          var budgetBenchmark = decimalBudget(totalBudget/30.4);
+          // console.log("Total Budget: $" + totalBudget);
+          // console.log("Leftover: $" + leftover);
+  
+          // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
+          // Sends an email to the manager in new daily budget is 3x or more less than the benchmark
+          // Updates the budget if no errors are found
+          if (newDailyBudget > 3*budgetBenchmark) {
+            console.log(">> Error Code: 2. New required budget is too high!");
+            console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+            sendErrorEmail(accountName, campaignName, currentManagerEmail, 2, newDailyBudget, budgetBenchmark);
+          } else if (newDailyBudget < 0.4*budgetBenchmark) {
+            console.log(">> Error Code: 3. New required budget is too low!");
+            console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+            sendErrorEmail(accountName, campaignName, currentManagerEmail, 3, newDailyBudget, budgetBenchmark);
+          } else {
+            console.log(">> Required Daily Budget: " + newDailyBudget);
+            budgetObject.setAmount(newDailyBudget);
+            
+            if (budgetObject.getAmount() == newDailyBudget){
+              console.log(">> Budget successfully updated.");
+              console.log(">> New Daily Budget: $" + budgetObject.getAmount());
+            } 
+          }
         }
-      }
-
-      // If the budget cannot be updated causing a fatal error, sends the corresponding PPC manager an email
-      catch {
-        sendErrorEmail(accountName, campaignName, currentManagerEmail, 1);
-      }
-      console.log("**Campaign processed**");
+  
+        // If the budget cannot be updated causing a fatal error, sends the corresponding PPC manager an email
+        catch {
+          sendErrorEmail(accountName, campaignName, currentManagerEmail, 1);
+        }
+        console.log("**Campaign processed**");
+      } 
     }
   }
   console.log("Account processed");
@@ -179,12 +183,12 @@ function sendErrorEmail(accountName, campaignName, email, code, budget, benchmar
     console.log(">> Email sent. Code 1");
   } else if (code == 2) {
     var subject = "Budget Warning - " + accountName;
-    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", more than 3x your average monthly of $" + benchmark + ". Please update manually if you want to proceed with this change.";
+    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", more than 3x your average daily of $" + benchmark + ". Please update manually if you want to proceed with this change.";
     MailApp.sendEmail(email, subject, body);
     console.log(">> Email sent. Code 2");
   } else if (code == 3) {
     var subject = "Budget Warning - " + accountName;
-    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", 3x lower than your average monthly of $" + benchmark + ". Please update manually if you want to proceed with this change.";
+    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", 3x lower than your average daily of $" + benchmark + ". Please update manually if you want to proceed with this change.";
     MailApp.sendEmail(email, subject, body);
     console.log(">> Email sent. Code 3");
   }
