@@ -10,6 +10,12 @@ Before using the program, the user needs to update the following variables:
 
       var sheetName = "[ADD SHEET NAME HERE]";
 
+- emails: This javascript object contains the emails of the PPC managers in the team. The object uses a key-value pairing of "managerName:managerEmail".
+
+        var emails = {
+              managerNameTag:"[MANAGER EMAIL]"
+        }
+
 The script is intended to run at the start of the day. This is the reason why the constant *days*, within the function *daysInMonth()*, adds one day to the difference between the current date and the total days in the month.
   
     function daysInMonth() {
