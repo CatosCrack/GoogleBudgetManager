@@ -64,4 +64,4 @@ The function that handles the mailing system uses an error code system. Here's t
 # Formatting the spreadsheet
 You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget, do not use any formating or periods or commas.
 
-!(https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
+![Screenshot of Google Sheet](https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
