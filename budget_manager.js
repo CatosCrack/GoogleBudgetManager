@@ -1,3 +1,4 @@
+// This object contains an object using a key-value pair of manager name - email address
 var emails = {
   managerNameTag:"[MANAGER EMAIL]"
 }
@@ -81,6 +82,14 @@ function update_budgets() {
     }
     console.log("......................");
     console.log("Account Name: " + accountName);
+
+    // Checks who is the manager of the account based on the account labels and fetches the email from the emails object
+    for (const manager in emails) {
+      if (accountLabels.includes(manager)) {
+        var currentManagerEmail = emails[manager];
+        console.log("Manager: "  + manager + " | Manager email: " + currentManagerEmail);
+      }
+    }
       
     // Select account to integrate with AdsApp
     AdsManagerApp.select(account);
@@ -91,44 +100,56 @@ function update_budgets() {
       console.log("**Campaign created**");
       let campaign = campaignIterator.next();
       let campaignName = campaign.getName();
-      console.log("Campaign Name: " + campaignName);
+      console.log(">> Campaign Name: " + campaignName);
 
       try {
-        //Get the budget spent in the current month
+        // Get the budget spent in the current month
         let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
-        console.log("Month Spend: $" + monthSpend);
+        console.log(">> Current Spend: $" + monthSpend);
         
         // Get the current average daily budget
         let budgetObject = campaign.getBudget();
         let currentBudget = budgetObject.getAmount();
-        console.log("Budget: $" + currentBudget + "/day");
+        console.log(">> Budget: $" + currentBudget + "/day");
         
-        // Calculate leftover budget
+        // Calculate leftover budget and calculate the daily spending benchmark
         var totalBudget = accountObject[accountName][campaignName];
-        // console.log("Total Budget: $" + totalBudget);
         var leftover = totalBudget - monthSpend;
-        // console.log("Leftover: $" + leftover);
         var newDailyBudget = decimalBudget(leftover/daysLeft);
-        console.log("New Average Daily Budget: " + newDailyBudget);
-        budgetObject.setAmount(newDailyBudget);
-        
-        if (budgetObject.getAmount() == newDailyBudget){
-          console.log("Budget successfully updated.");
-          console.log("New Daily Budget: $" + budgetObject.getAmount());
+        var budgetBenchmark = decimalBudget(totalBudget/30.4);
+        // console.log("Total Budget: $" + totalBudget);
+        // console.log("Leftover: $" + leftover);
+
+        // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
+        // Sends an email to the manager in new daily budget is 3x or more less than the benchmark
+        // Updates the budget if no errors are found
+        if (newDailyBudget > 3*budgetBenchmark) {
+          console.log(">> Error Code: 2. New required budget is too high!");
+          console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+          sendErrorEmail(accountName, campaignName, currentManagerEmail, 2, newDailyBudget, budgetBenchmark);
+        } else if (newDailyBudget < 0.4*budgetBenchmark) {
+          console.log(">> Error Code: 3. New required budget is too low!");
+          console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+          sendErrorEmail(accountName, campaignName, currentManagerEmail, 3, newDailyBudget, budgetBenchmark);
+        } else {
+          console.log(">> Required Daily Budget: " + newDailyBudget);
+          budgetObject.setAmount(newDailyBudget);
+          
+          if (budgetObject.getAmount() == newDailyBudget){
+            console.log(">> Budget successfully updated.");
+            console.log(">> New Daily Budget: $" + budgetObject.getAmount());
+          } 
         }
       }
 
-      // If the budget cannot be updated for whatever reason, send the corresponding PPC manager an email
+      // If the budget cannot be updated causing a fatal error, sends the corresponding PPC manager an email
       catch {
-        if (accountLabels.includes("[MANAGER EMAIL]")) {
-          console.log(emails["[MANAGER EMAIL]"]);
-          sendErrorEmail(accountName, campaignName, emails["[MANAGER EMAIL]"]);
-         }
+        sendErrorEmail(accountName, campaignName, currentManagerEmail, 1);
       }
+      console.log("**Campaign processed**");
     }
-    console.log("Campaign while loop ended");
   }
-  console.log("Account while loop ended");
+  console.log("Account processed");
 }
   
 function daysInMonth() {
@@ -150,10 +171,23 @@ function decimalBudget(amount){
   return numToString * 1;
 }
 
-function sendErrorEmail(accountName, campaignName, email){
-  var subject = "Budget Error - " + accountName;
-  var body = "The budget management script couldn't update the campaign {" + campaignName + "} in your account {" + accountName + "}. Please update the budget manually.";
-  MailApp.sendEmail(email, subject, body);
+function sendErrorEmail(accountName, campaignName, email, code, budget, benchmark){
+  if (code == 1) {
+    var subject = "Budget Error - " + accountName;
+    var body = "The budget management script couldn't update the campaign '" + campaignName + "' in your account '" + accountName + "'. Please update the budget manually.";
+    MailApp.sendEmail(email, subject, body);
+    console.log(">> Email sent. Code 1");
+  } else if (code == 2) {
+    var subject = "Budget Warning - " + accountName;
+    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", more than 3x your average monthly of $" + benchmark + ". Please update manually if you want to proceed with this change.";
+    MailApp.sendEmail(email, subject, body);
+    console.log(">> Email sent. Code 2");
+  } else if (code == 3) {
+    var subject = "Budget Warning - " + accountName;
+    var body = "Based on your current spending, the daily budget for '" + campaignName + "' should be $" + budget + ", 3x lower than your average monthly of $" + benchmark + ". Please update manually if you want to proceed with this change.";
+    MailApp.sendEmail(email, subject, body);
+    console.log(">> Email sent. Code 3");
+  }
 }
 
 function checkFirstDay() {
@@ -161,9 +195,7 @@ function checkFirstDay() {
   let currentDay = base.getDay();
   if (currentDay == 1) {
     return true
-  }
-  
-  else {
+  } else {
     return false
   }
 }
