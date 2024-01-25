@@ -62,17 +62,19 @@ The function that handles the mailing system uses an error code system. Here's t
       }
 
 ## Formatting the spreadsheet
-You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget, do not use any formating or periods or commas.
+You need to format you spreadsheet carefully to avoid errors. Under the "account" column you need to input the account name exactly as it is in Google. The same goes for the each of the campaigns in the account that you need to update with the script. For the budget amount, do not use any formating or periods and commas.
 
 ![Screenshot of Google Sheet](https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
 
-If you pause a campaign, you don't need to take it out of the spreadsheet. However, if you have an active campaign in your Google account and you don't add it, you will cause and error and receive an email detailing what account is missing the campaign.
+If you pause a campaign, you don't need to take it out of the spreadsheet. However, if you have an active campaign in your Google account and you don't add it, you will cause an error. When an error happens, you will receive an email detailing what account is missing the campaign.
 
 ### Branding campaigns
 If your budget for the branding campaign is a fixed amount every month, don't add it in the spreadsheet. Simply set the correct amount in Google Ads.
 
+For branding campaigns with specific budgets, add it to the spreadsheet as explained.
+
 ### Accounts using shared budgets
-If you are using shared budgets for your campaigns, instead of adding your campaign name add "Portfolio" in the campaign column. 
+If you are using shared budgets for your campaigns, instead of adding the name of an specific campaign, add "Portfolio" in the campaign column. The budget amount will then be applied to the campaigns that are sharing the budget.
 
 If you have campaigns in the same account that are not using the shared budget, simply add them like you would add any other campaign.
 
