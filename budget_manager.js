@@ -102,30 +102,33 @@ function update_budgets() {
       let campaignName = campaign.getName();
       console.log(">> Campaign Name: " + campaignName);
 
+      // Get the budget spent in the current month
+      let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
+      let monthAccountSpend = account.getStatsFor("THIS_MONTH").getCost();
+      console.log(">> Current Campaign Spend: $" + monthSpend);
+      console.log(">> Current Account Spend: $" + monthAccountSpend)
+      
+      // Get the current average daily budget
+      let budgetObject = campaign.getBudget();
+      let currentBudget = budgetObject.getAmount();
+      console.log(">> Current Daily Budget: $" + currentBudget + "/day");
+
       // Checks if the program needs to update the branding budget or not.
       // First checks if the current campaign is a branding campaign. Then checks if there is budget information in the spreadsheet
       // If no branding information was specified, the program skips the campaign and lets the budget unchanged. Otherwise, the normal process applies.
       if (campaignName.includes("Branding") || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
-        console.log("Branding campaign no included in spreadsheet. Budget unchanged.")
-      } else {
+        console.log("Branding campaign no included in spreadsheet. Budget unchanged.");
+      } else if (budgetObject.isExplicitlyShared()) {
+        console.log(">> Portfolio budget in used");
+        // Calculate leftover budget and calculate the daily spending benchmark
+        var totalBudget = accountObject[accountName]["Portfolio"];
+        var leftover = totalBudget - monthAccountSpend;
+        var newDailyBudget = decimalBudget(leftover/daysLeft);
+        var budgetBenchmark = decimalBudget(totalBudget/30.4);
+        // console.log("Total Budget: $" + totalBudget);
+        // console.log("Leftover: $" + leftover);
+
         try {
-          // Get the budget spent in the current month
-          let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
-          console.log(">> Current Spend: $" + monthSpend);
-          
-          // Get the current average daily budget
-          let budgetObject = campaign.getBudget();
-          let currentBudget = budgetObject.getAmount();
-          console.log(">> Current Daily Budget: $" + currentBudget + "/day");
-          
-          // Calculate leftover budget and calculate the daily spending benchmark
-          var totalBudget = accountObject[accountName][campaignName];
-          var leftover = totalBudget - monthSpend;
-          var newDailyBudget = decimalBudget(leftover/daysLeft);
-          var budgetBenchmark = decimalBudget(totalBudget/30.4);
-          // console.log("Total Budget: $" + totalBudget);
-          // console.log("Leftover: $" + leftover);
-  
           // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
           // Sends an email to the manager in new daily budget is 3x or more less than the benchmark
           // Updates the budget if no errors are found
@@ -138,7 +141,45 @@ function update_budgets() {
             console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
             sendErrorEmail(accountName, campaignName, currentManagerEmail, 3, newDailyBudget, budgetBenchmark);
           } else {
-            console.log(">> Required Daily Budget: " + newDailyBudget);
+            console.log(">> Required Daily Budget: $" + newDailyBudget);
+            budgetObject.setAmount(newDailyBudget);
+            
+            if (budgetObject.getAmount() == newDailyBudget){
+              console.log(">> Budget successfully updated.");
+              console.log(">> New Daily Budget: $" + budgetObject.getAmount());
+            } 
+          }
+        }
+  
+        // If the budget cannot be updated causing a fatal error, sends the corresponding PPC manager an email
+        catch {
+          sendErrorEmail(accountName, campaignName, currentManagerEmail, 1);
+        }
+        console.log("**Campaign processed**");
+
+      } else {
+        // Calculate leftover budget and calculate the daily spending benchmark
+        var totalBudget = accountObject[accountName][campaignName];
+        var leftover = totalBudget - monthSpend;
+        var newDailyBudget = decimalBudget(leftover/daysLeft);
+        var budgetBenchmark = decimalBudget(totalBudget/30.4);
+        // console.log("Total Budget: $" + totalBudget);
+        // console.log("Leftover: $" + leftover);
+
+        try {
+          // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
+          // Sends an email to the manager in new daily budget is 3x or more less than the benchmark
+          // Updates the budget if no errors are found
+          if (newDailyBudget > 3*budgetBenchmark) {
+            console.log(">> Error Code: 2. New required budget is too high!");
+            console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+            sendErrorEmail(accountName, campaignName, currentManagerEmail, 2, newDailyBudget, budgetBenchmark);
+          } else if (newDailyBudget < 0.4*budgetBenchmark) {
+            console.log(">> Error Code: 3. New required budget is too low!");
+            console.log(">> Required Daily Budget: $" + newDailyBudget + " | Benchmark: $" + budgetBenchmark);
+            sendErrorEmail(accountName, campaignName, currentManagerEmail, 3, newDailyBudget, budgetBenchmark);
+          } else {
+            console.log(">> Required Daily Budget: $" + newDailyBudget);
             budgetObject.setAmount(newDailyBudget);
             
             if (budgetObject.getAmount() == newDailyBudget){
