@@ -96,6 +96,26 @@ function update_budgets() {
       
     // Load campaigns in child account and get campaign name
     var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
+
+    var nonSharedSpend = 0;
+    var brandingSpend = 0;
+    var campaignCount = 0;
+    while (campaignIterator.hasNext()) {
+      const campaignCheck = campaignIterator.next();
+      if (!campaignCheck.getBudget().isExplicitlyShared()) {
+        nonSharedSpend = nonSharedSpend + campaignCheck.getStatsFor("THIS_MONTH").getCost();
+      }
+      if (campaignCheck.getName().includes("Branding") || campaignCheck.getName().includes("branding")) {
+        brandingSpend = brandingSpend + campaignCheck.getStatsFor("THIS_MONTH").getCost();
+      } else {
+        campaignCount = campaignCount + 1;
+      }
+    }
+    nonSharedSpend = decimalBudget(nonSharedSpend - brandingSpend, false);
+    brandingSpend = decimalBudget(brandingSpend/campaignCount, false);
+
+    var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
+
     while (campaignIterator.hasNext()) {
       console.log("**Campaign created**");
       let campaign = campaignIterator.next();
@@ -106,7 +126,9 @@ function update_budgets() {
       let monthSpend = campaign.getStatsFor("THIS_MONTH").getCost();
       let monthAccountSpend = account.getStatsFor("THIS_MONTH").getCost();
       console.log(">> Current Campaign Spend: $" + monthSpend);
-      console.log(">> Current Account Spend: $" + monthAccountSpend)
+      console.log(">> Current Account Spend: $" + monthAccountSpend);
+      console.log(">> Current Non-Shared Spend: $" + nonSharedSpend);
+      console.log(">> Current Branding Spend: $" + brandingSpend);
       
       // Get the current average daily budget
       let budgetObject = campaign.getBudget();
@@ -116,13 +138,13 @@ function update_budgets() {
       // Checks if the program needs to update the branding budget or not.
       // First checks if the current campaign is a branding campaign. Then checks if there is budget information in the spreadsheet
       // If no branding information was specified, the program skips the campaign and lets the budget unchanged. Otherwise, the normal process applies.
-      if (campaignName.includes("Branding") || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
-        console.log("Branding campaign no included in spreadsheet. Budget unchanged.");
+      if (campaignName.includes("Branding") && !Object.keys(accountObject[accountName]).includes(campaignName) || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
+        console.log("Branding campaign not included in spreadsheet. Budget unchanged.");
       } else if (budgetObject.isExplicitlyShared()) {
         console.log(">> Portfolio budget in used");
         // Calculate leftover budget and calculate the daily spending benchmark
         var totalBudget = accountObject[accountName]["Portfolio"];
-        var leftover = totalBudget - monthAccountSpend;
+        var leftover = totalBudget - monthAccountSpend + nonSharedSpend;
         var newDailyBudget = decimalBudget(leftover/daysLeft);
         var budgetBenchmark = decimalBudget(totalBudget/30.4);
         // console.log("Total Budget: $" + totalBudget);
@@ -159,7 +181,11 @@ function update_budgets() {
 
       } else {
         // Calculate leftover budget and calculate the daily spending benchmark
-        var totalBudget = accountObject[accountName][campaignName];
+        if (campaignName.includes("Branding") || campaignName.includes("branding")) {
+          var totalBudget = accountObject[accountName][campaignName];
+        } else {
+          var totalBudget = accountObject[accountName][campaignName] - brandingSpend;
+        }
         var leftover = totalBudget - monthSpend;
         var newDailyBudget = decimalBudget(leftover/daysLeft);
         var budgetBenchmark = decimalBudget(totalBudget/30.4);
@@ -209,9 +235,9 @@ function daysInMonth() {
   return days
 }
   
-function decimalBudget(amount){    
+function decimalBudget(amount, update=true){    
   // Sets amount to 1 if amount = 0
-  if (amount == 0) {
+  if (amount == 0 && update == true) {
     amount = 1;
   }
 
