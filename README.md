@@ -66,9 +66,15 @@ You need to format you spreadsheet carefully to avoid errors. Under the "account
 
 ![Screenshot of Google Sheet](https://github.com/CatosCrack/GoogleBudgetManager/blob/main/resources/im1.png)
 
-**IMPORTANT:** If your budget for the branding campaign is a fixed amount every month, don't add it in the spreadsheet. Simply set the correct amount in Google Ads.
-
 If you pause a campaign, you don't need to take it out of the spreadsheet. However, if you have an active campaign in your Google account and you don't add it, you will cause and error and receive an email detailing what account is missing the campaign.
+
+### Branding campaigns
+If your budget for the branding campaign is a fixed amount every month, don't add it in the spreadsheet. Simply set the correct amount in Google Ads.
+
+### Accounts using shared budgets
+If you are using shared budgets for your campaigns, instead of adding your campaign name add "Portfolio" in the campaign column. 
+
+If you have campaigns in the same account that are not using the shared budget, simply add them like you would add any other campaign.
 
 ## Excluding accounts from the script
 If you don't want the script to make changes to an account, add a label named "Exclude - Budget Script" at the MCC level.
