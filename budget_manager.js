@@ -27,8 +27,8 @@ function update_budgets() {
   console.log("Days left this month: " + daysLeft);
     
   // Define the spreadsheet containing budget data
-  var spreadsheetURL = "[ADD GOOGLE SHEET URL HERE]";
-  var sheetName = "[ADD SHEET NAME HERE]";
+  var spreadsheetURL = "https://docs.google.com/spreadsheets/d/12IQoVEHDiN2as9V5qFStalUGDBk_MQOBoeOUZkT79bo/edit?usp=sharing";
+  var sheetName = "Budgets";
     
   // Open spreadsheet
   var spreadsheet = SpreadsheetApp.openByUrl(spreadsheetURL);
@@ -93,6 +93,22 @@ function update_budgets() {
       
     // Select account to integrate with AdsApp
     AdsManagerApp.select(account);
+    
+    // Created an object with base experiment campaigns and their cost
+    experimentObject = {}
+    var experimentIterator = AdsApp.experiments().get()
+    while (experimentIterator.hasNext()){
+      experiment = experimentIterator.next() 
+      let experimentSuffix = experiment.getSuffix()
+      try {
+        let experimentBase = experiment.getBaseCampaign().getName()
+        if (experimentSpend > 0){
+          experimentObject[experimentBase] = 0
+        }
+      } catch {
+        //None
+      }
+    }
       
     // Load campaigns in child account and get campaign name
     var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
@@ -107,12 +123,19 @@ function update_budgets() {
       }
       if (campaignCheck.getName().includes("Branding") || campaignCheck.getName().includes("branding")) {
         brandingSpend = brandingSpend + campaignCheck.getStatsFor("THIS_MONTH").getCost();
+      } else if (campaignCheck.isExperimentCampaign()) {
+        let value = decimalBudget(campaignCheck.getStatsFor("THIS_MONTH").getCost(), false)
+        experimentObject[campaignCheck.getName()] = value
       } else {
         campaignCount = campaignCount + 1;
       }
     }
     nonSharedSpend = decimalBudget(nonSharedSpend - brandingSpend, false);
     brandingSpend = decimalBudget(brandingSpend/campaignCount, false);
+    
+    console.log(">> Experiment Costs: ")
+    console.log(experimentObject)
+    
 
     var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
 
@@ -140,15 +163,17 @@ function update_budgets() {
       // If no branding information was specified, the program skips the campaign and lets the budget unchanged. Otherwise, the normal process applies.
       if (campaignName.includes("Branding") && !Object.keys(accountObject[accountName]).includes(campaignName) || campaignName.includes("branding") && !Object.keys(accountObject[accountName]).includes(campaignName)) {
         console.log("Branding campaign not included in spreadsheet. Budget unchanged.");
+      } else if (campaign.isExperimentCampaign()) {
+        console.log("This campaign is an experiment. Ignoring from the script calculations.")
       } else if (budgetObject.isExplicitlyShared()) {
-        console.log(">> Portfolio budget in used");
+        console.log(">> Portfolio budget in use");
         // Calculate leftover budget and calculate the daily spending benchmark
         var totalBudget = accountObject[accountName]["Portfolio"];
         var leftover = totalBudget - monthAccountSpend + nonSharedSpend;
         var newDailyBudget = decimalBudget(leftover/daysLeft);
         var budgetBenchmark = decimalBudget(totalBudget/30.4);
-        // console.log("Total Budget: $" + totalBudget);
-        // console.log("Leftover: $" + leftover);
+        console.log(">> Total Budget: $" + totalBudget);
+        console.log(">> Leftover: $" + leftover);
 
         try {
           // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
@@ -183,14 +208,18 @@ function update_budgets() {
         // Calculate leftover budget and calculate the daily spending benchmark
         if (campaignName.includes("Branding") || campaignName.includes("branding")) {
           var totalBudget = accountObject[accountName][campaignName];
+        } else if (Object.keys(experimentObject) == campaignName) {
+          var experimentSpend = experimentObject[campaignName]
+          var totalBudget = accountObject[accountName][campaignName] - brandingSpend - experimentSpend;
+          console.log(">> This campaign is a base campaign for an active experiment campaign. Total budget adjusted")
         } else {
           var totalBudget = accountObject[accountName][campaignName] - brandingSpend;
         }
         var leftover = totalBudget - monthSpend;
         var newDailyBudget = decimalBudget(leftover/daysLeft);
         var budgetBenchmark = decimalBudget(totalBudget/30.4);
-        // console.log("Total Budget: $" + totalBudget);
-        // console.log("Leftover: $" + leftover);
+        console.log(">> Total Budget: $" + totalBudget);
+        console.log(">> Leftover: $" + leftover);
 
         try {
           // Sends an email to the manager if new daily budget is 3x or more higher than the benchmark
@@ -266,7 +295,7 @@ function sendErrorEmail(accountName, campaignName, email, code, budget, benchmar
 
 function checkFirstDay() {
   const base = new Date();
-  let currentDay = base.getDay();
+  let currentDay = base.getDate();
   if (currentDay == 1) {
     return true
   } else {
