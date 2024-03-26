@@ -93,22 +93,9 @@ function update_budgets() {
       
     // Select account to integrate with AdsApp
     AdsManagerApp.select(account);
-    
-    // Created an object with base experiment campaigns and their cost
+
+        // Created an object with base experiment campaigns and their cost
     experimentObject = {}
-    var experimentIterator = AdsApp.experiments().get()
-    while (experimentIterator.hasNext()){
-      experiment = experimentIterator.next() 
-      let experimentSuffix = experiment.getSuffix()
-      try {
-        let experimentBase = experiment.getBaseCampaign().getName()
-        if (experimentSpend > 0){
-          experimentObject[experimentBase] = 0
-        }
-      } catch {
-        //None
-      }
-    }
       
     // Load campaigns in child account and get campaign name
     var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
@@ -132,6 +119,36 @@ function update_budgets() {
     }
     nonSharedSpend = decimalBudget(nonSharedSpend - brandingSpend, false);
     brandingSpend = decimalBudget(brandingSpend/campaignCount, false);
+    
+    var experimentIterator = AdsApp.experiments().get();
+    
+    while (experimentIterator.hasNext()){
+      console.log("==== Creating Experiment ====");
+      experiment = experimentIterator.next();
+      if (experiment.getType() != "AD_VARIATION") {
+        console.log("Type: " + experiment.getType());
+        let experimentSuffix = experiment.getSuffix();
+        console.log("Suffix: " + experimentSuffix);
+        let experimentBase = experiment.getBaseCampaign().getName();
+        console.log("Experiment base: " + experimentBase);
+        key1 = experimentBase + " " + experimentSuffix;
+        key2 = experimentBase + experimentSuffix;
+        console.log(Object.keys(experimentObject).includes(key1) || Object.keys(experimentObject).includes(key2))
+        try {
+          if (Object.keys(experimentObject).includes(key1)){
+            experimentObject[experimentBase] = experimentObject[key1];
+            delete experimentObject[key1];
+          } else if (Object.keys(experimentObject).includes(key2)) {
+            experimentObject[experimentBase] = experimentObject[key2];
+            delete experimentObject[key2];
+          }
+        } catch {
+          //None
+        }
+      } else {
+        //None
+      }
+    }
     
     console.log(">> Experiment Costs: ")
     console.log(experimentObject)
