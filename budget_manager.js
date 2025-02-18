@@ -21,7 +21,7 @@ function update_budgets() {
     
   // Define the spreadsheet containing budget data
   var spreadsheetURL = "YOUR_URL";
-  var sheetName = "Budgets";
+  var sheetName = "YOUR_SHEET_NAME";
     
   // Open spreadsheet
   var spreadsheet = SpreadsheetApp.openByUrl(spreadsheetURL);
