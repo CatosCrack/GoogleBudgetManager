@@ -1,25 +1,18 @@
 // This object contains an object using a key-value pair of manager name - email address
 var emails = {
-  managerNameTag:"[MANAGER EMAIL]"
+  managerNameTag: "MANAGER_EMAIL"
 }
 
-function main() {
-  update_budgets();
-  console.log("Script completely executed");
-}
-
-/* Use this block instead if this is the script that runs daily
 function main() {
   if (checkFirstDay()){
     console.log("First day of month. Updating budgets");
     update_budgets();
   }
   else {
-    console.log("Not first date. Budgets unchanged");
+    console.log("Not first day of the month. Budgets unchanged");
   }
   console.log("Script completely executed");
 }
-*/
 
 function update_budgets() {
   // Gets days left in the current month
@@ -27,7 +20,7 @@ function update_budgets() {
   console.log("Days left this month: " + daysLeft);
     
   // Define the spreadsheet containing budget data
-  var spreadsheetURL = "https://docs.google.com/spreadsheets/d/12IQoVEHDiN2as9V5qFStalUGDBk_MQOBoeOUZkT79bo/edit?usp=sharing";
+  var spreadsheetURL = "YOUR_URL";
   var sheetName = "Budgets";
     
   // Open spreadsheet
@@ -66,7 +59,7 @@ function update_budgets() {
   // console.log(accountObject["Account1"]["Campaign2"]);
   
   // Load all the accounts in the MCC labelled as test accounts in an iterator
-  var accountIterator = AdsManagerApp.accounts().withCondition("LabelNames CONTAINS 'Test Account'").get();
+  var accountIterator = AdsManagerApp.accounts().withCondition("LabelNames CONTAINS 'Budget Script'").get();
     
   while (accountIterator.hasNext()) {
     console.log("**Account created**");
@@ -93,8 +86,8 @@ function update_budgets() {
       
     // Select account to integrate with AdsApp
     AdsManagerApp.select(account);
-
-        // Created an object with base experiment campaigns and their cost
+    
+    // Created an object with base experiment campaigns and their cost
     experimentObject = {}
       
     // Load campaigns in child account and get campaign name
@@ -152,7 +145,6 @@ function update_budgets() {
     
     console.log(">> Experiment Costs: ")
     console.log(experimentObject)
-    
 
     var campaignIterator = AdsApp.campaigns().withCondition("campaign.status = ENABLED").get();
 
@@ -225,7 +217,7 @@ function update_budgets() {
         // Calculate leftover budget and calculate the daily spending benchmark
         if (campaignName.includes("Branding") || campaignName.includes("branding")) {
           var totalBudget = accountObject[accountName][campaignName];
-        } else if (Object.keys(experimentObject) == campaignName) {
+        } else if (Object.keys(experimentObject).includes(campaignName)) { // Check if is included, not if is equal
           var experimentSpend = experimentObject[campaignName]
           var totalBudget = accountObject[accountName][campaignName] - brandingSpend - experimentSpend;
           console.log(">> This campaign is a base campaign for an active experiment campaign. Total budget adjusted")
