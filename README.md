@@ -78,5 +78,7 @@ If you are using shared budgets for your campaigns, instead of adding the name o
 
 If you have campaigns in the same account that are not using the shared budget, simply add them like you would add any other campaign.
 
-## Excluding accounts from the script
-If you don't want the script to make changes to an account, add a label named "Exclude - Budget Script" at the MCC level.
+## Adding/Excluding accounts from the script
+If you want the script to make changes to the account, add the label "Budget Script" at the MCC level. If you don't add a label, the script will simply ignore this account when makign the changes.
+
+Additionally, if you want to include an account but don't want to include all the campaigns, it is as simple as not including the campaign name in the spreadsheet.
